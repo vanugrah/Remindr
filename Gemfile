@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rack-cas'
+gem 'rubycas-client', :git => 'git://github.com/rubycas/rubycas-client.git'
 gem 'rails', '4.2.1'
 gem 'sass-rails', '~> 5.0'
 gem 'uglifier', '>= 1.3.0'
