@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'awesome_print'
 gem 'mechanize' 
 gem 'rails', '4.2.1'
 gem 'sass-rails', '~> 5.0'
