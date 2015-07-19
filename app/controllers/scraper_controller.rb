@@ -8,33 +8,34 @@ class ScraperController < ApplicationController
 
 	def testing
 		# Set login params and variables
-		@username = params[:Username]
-		@password = params[:Password]
+		@username         = params[:Username]
+		@password         = params[:Password]
 		@current_semester = "SPR15"
 		@user             = Hash.new
 		@classes          = Array.new
 		@threads          = Array.new
 
-		# Start scraping
-		main_task
+		# Login into T-Square
+		login(@username, @password)
 
-		# Wait for all child processes to finish
-		@threads.each do |thread|
-			thread.join
+		if authorized?
+			# Start scraping
+			main_task
+
+			# Wait for all child processes to finish
+			@threads.each do |thread|
+				thread.join
+			end
+
+			# Render the view
+			render "testing"			
+		else
+			render :text => "Sorry, Login Failed. = ("
 		end
-
-		# Render the view
-		render "testing"
 	end
 
 	def main_task
-		# Login into T-Square
-		login(@username, @password )
-
-		# Gets userName, id, email
-		get_user_info
-
-		# # Gets links to all current classes
+		# Gets links to all current classes
 		get_classes
 
 		# Get all assignment info for each class
@@ -47,6 +48,9 @@ class ScraperController < ApplicationController
 				cl[:assignments] = info[1]
 			end
 		end
+
+		# Gets userName, id, email
+		get_user_info
 	end
 
 	# Log's a user into T-Square with their username and password.
@@ -62,6 +66,15 @@ class ScraperController < ApplicationController
 	  form.username = username
 	  form.password = password
 	  form.submit
+	end
+
+	# Checks to see if login worked. Returns true if it worked, 
+	# false otherwise.
+	def authorized?
+		if @agent.page.title.include?("T-Square") && @agent.page.title.include?("Home") && @agent.page.title.include?("Workspace")
+			return true
+		end
+		return false
 	end
 
 
