@@ -30,7 +30,7 @@ class ScraperController < ApplicationController
 			# Render the view
 			render "testing"			
 		else
-			render :text => "Sorry, Login Failed. = ("
+			redirect_to "/login"
 		end
 	end
 
