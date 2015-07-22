@@ -27,10 +27,15 @@ class ScraperController < ApplicationController
 				thread.join
 			end
 
+			# Checks for new user
+			if new_user?
+				save_user
+			end
+
 			# Render the view
 			render "testing"			
 		else
-			redirect_to "/login"
+			redirect_to "/login", :notice => "Sorry, something went wrong with your username or password. Have another go?"
 		end
 	end
 
@@ -53,6 +58,32 @@ class ScraperController < ApplicationController
 		get_user_info
 	end
 
+	# Checks if user exists in the database
+	def new_user?
+		if User.find_by(user_name: @username)
+			return false 
+		end
+		return true
+	end
+
+	# Saves the user's details to database
+	def save_user
+		args              = Hash.new
+		args[:user_ID]    = @user[:id]
+		args[:user_name]  = @username
+		args[:first_name] = @user[:firstName]
+		args[:last_name]  = @user[:lastName]
+		args[:email]      = @user[:email]
+		
+		salt                 = BCrypt::Engine.generate_salt
+		encrypted            = BCrypt::Engine.hash_secret(@password, salt)
+		args[:password_salt] = salt
+		args[:password_hash] = encrypted
+
+		new_user = User.new(args)
+		new_user.save
+	end
+
 	# Log's a user into T-Square with their username and password.
 	# Return the Dashboard page.
 	def login(username, password)
@@ -62,10 +93,10 @@ class ScraperController < ApplicationController
 	  @agent.get("https://login.gatech.edu/cas/login?service=https%3A%2F%2Ft-square.gatech.edu%2Fsakai-login-tool%2Fcontainer")
 
 	  # Submit Form
-	  form = @agent.page.forms.first
-	  form.username = username
-	  form.password = password
-	  form.submit
+		form          = @agent.page.forms.first
+		form.username = username
+		form.password = password
+		form.submit
 	end
 
 	# Checks to see if login worked. Returns true if it worked, 
